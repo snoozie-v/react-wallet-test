@@ -2,8 +2,6 @@ import { NetworkId, WalletId, useWallet, type Wallet } from '@txnlab/use-wallet-
 import algosdk from 'algosdk'
 import * as React from 'react'
 
-console.log(NetworkId)
-
 export function Connect() {
   const {
     algodClient,
@@ -14,29 +12,15 @@ export function Connect() {
     wallets
   } = useWallet()
 
-
-  console.log(algodClient, activeNetwork, wallets)
+  console.log('ALGOD', algodClient, activeNetwork, wallets)
   const [isSending, setIsSending] = React.useState(false)
-  const [magicEmail, setMagicEmail] = React.useState('')
-
-  const isMagicLink = (wallet: Wallet) => wallet.id === WalletId.MAGIC
-  const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(magicEmail)
 
   const isConnectDisabled = (wallet: Wallet) => {
-    if (wallet.isConnected) {
-      return true
-    }
-    if (isMagicLink(wallet) && !isEmailValid) {
-      return true
-    }
-    return false
+    return wallet.isConnected
   }
 
-  const getConnectArgs = (wallet: Wallet) => {
-    if (isMagicLink(wallet)) {
-      return { email: magicEmail }
-    }
-    return undefined
+  const getConnectArgs = () => {
+    return undefined // Since we're not dealing with MagicLink, no args needed
   }
 
   const setActiveAccount = (event: React.ChangeEvent<HTMLSelectElement>, wallet: Wallet) => {
@@ -86,27 +70,6 @@ export function Connect() {
           Current Network: <span className="active-network">{activeNetwork}</span>
         </h4>
         <div className="network-buttons">
-          {/* <button
-            type="button"
-            onClick={() => setActiveNetwork(NetworkId.BETANET)}
-            disabled={activeNetwork === NetworkId.BETANET}
-          >
-            Set to Betanet
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveNetwork(NetworkId.TESTNET)}
-            disabled={activeNetwork === NetworkId.TESTNET}
-          >
-            Set to Testnet
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveNetwork(NetworkId.MAINNET)}
-            disabled={activeNetwork === NetworkId.MAINNET}
-          >
-            Set to Mainnet
-          </button> */}
           <button
             type='button'
             onClick={() => setActiveNetwork(NetworkId.VOIMAIN)}
@@ -119,7 +82,7 @@ export function Connect() {
             onClick={() => setActiveNetwork(NetworkId.TESTNET)}
             disabled={activeNetwork === NetworkId.TESTNET}
           >
-            Set to VOI Test
+            Set to TestNet
           </button>
         </div>
       </div>
@@ -134,9 +97,20 @@ export function Connect() {
             <button
               type="button"
               onClick={() => {
-                console.log('Attempting to connect with:', wallet.id, getConnectArgs(wallet));
-                wallet.connect(getConnectArgs(wallet)).catch((error) => {
+                const args = getConnectArgs();
+                console.log('Attempting to connect with:', wallet.id, args, activeNetwork);
+                wallet.connect(args).then(() => {
+                  console.log('Successfully connected');
+                }).catch((error) => {
                   console.error('Failed to connect:', error);
+                  // Log the error in more detail
+                  if (error.response) {
+                    console.error('Response data:', error.response.data);
+                    console.error('Response status:', error.response.status);
+                    console.error('Response headers:', error.response.headers);
+                  } else {
+                    console.error('Error message:', error.message);
+                  }
                 });
               }}
               disabled={isConnectDisabled(wallet)}
@@ -164,20 +138,6 @@ export function Connect() {
               </button>
             )}
           </div>
-
-          {isMagicLink(wallet) && (
-            <div className="input-group">
-              <label htmlFor="magic-email">Email:</label>
-              <input
-                id="magic-email"
-                type="email"
-                value={magicEmail}
-                onChange={(e) => setMagicEmail(e.target.value)}
-                placeholder="Enter email to connect..."
-                disabled={wallet.isConnected}
-              />
-            </div>
-          )}
 
           {wallet.isActive && wallet.accounts.length > 0 && (
             <select onChange={(e) => setActiveAccount(e, wallet)}>

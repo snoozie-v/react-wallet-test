@@ -11,14 +11,13 @@ const walletManager = new WalletManager({
   wallets: [
     WalletId.KIBISIS,
   ],
-  network: NetworkId.TESTNET,
-  algod: {
-    [NetworkId.TESTNET]: {
-    token: "",
-    baseServer: "https://testnet-api.voi.nodely.dev",
-    port: ""
-    },
-  }
+  // network: NetworkId.TESTNET,
+  // algod: {
+  //   token: "",
+  //   baseServer: "https://testnet-api.voi.nodely.dev",
+  //   port: ""
+  //   ,
+  // }
 });
 
 function App() {
